@@ -96,7 +96,7 @@
                         },
                         "Direction": "Down"
                     }],
-                    "Size": { "X": 32, "Y": 38 },
+                    "Size": { "X": 32, "Y": 48 },
                     "CustomFields": {
                         "poohnhi.PoohCore/WideCharacter": "true",
                         "poohnhi.PoohCore/HighCharacter": "true"

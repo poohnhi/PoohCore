@@ -1,27 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Xml.Linq;
-using Microsoft.Xna.Framework;
-using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
-using System;
 using System.Collections.Generic;
 using StardewValley.Extensions;
-using static System.Collections.Specialized.BitVector32;
-using StardewValley.Delegates;
 using StardewValley.TokenizableStrings;
 using StardewValley.GameData.Characters;
-using StardewValley.ItemTypeDefinitions;
-using Microsoft.Xna.Framework.Media;
 using System.Linq;
-using static StardewValley.GameStateQuery;
 using StardewValley.Internal;
-using StardewValley.Objects;
 
 namespace PoohCore
 {
@@ -29,24 +13,27 @@ namespace PoohCore
     {
         public static string GetMailFlagProgressNumberFromMailFlag(string mailFlag)
         {
-            string currentNum = "0";
             foreach (string s in Game1.player.mailReceived)
             {
-                if (s.Contains(mailFlag) && s.Length != mailFlag.Length)
+                if (s.Length > mailFlag.Length && s.StartsWith(mailFlag))
                 {
-                    string getNumMailFlag = s.Replace(mailFlag, "");
-                    int num = Int32.Parse(getNumMailFlag);
-                    currentNum = num.ToString();
-                    break;
+                    string numPart = s.Substring(mailFlag.Length);
+                    if (int.TryParse(numPart, out int num)) 
+                    {
+                        return num.ToString();
+                    }
                 }
             }
-            return currentNum;
+            return "0";
         }
         public static string GetNextNumberFromString(string number)
         {
-            int num = Int32.Parse(number);
-            num += 1;
-            return num.ToString();
+            if (int.TryParse(number, out int num))
+            {
+                num += 1;
+                return num.ToString();
+            }
+            return "1";
         }
         internal class GetGiftTasteCPTokenFromSomeOneToken
         {
@@ -122,35 +109,22 @@ namespace PoohCore
                 {
                     ModEntry.ListOfMailFlag.Add(thisMailFlag);
                 }
-                if (GetNextNumberFromString(GetMailFlagProgressNumberFromMailFlag(thisMailFlag)) != null && GetNextNumberFromString(GetMailFlagProgressNumberFromMailFlag(thisMailFlag)) != "")
-                    yield return GetNextNumberFromString(GetMailFlagProgressNumberFromMailFlag(thisMailFlag));
+                string nextNum = GetNextNumberFromString(GetMailFlagProgressNumberFromMailFlag(thisMailFlag));
+                if (!string.IsNullOrEmpty(nextNum)) yield return nextNum;
                 else yield return "1";
             }
         }
         
         public static int ParseGiftTaste(string giftTasteString)
         {
-            int tempNum = 9;
-            switch (giftTasteString)
+            return giftTasteString.ToLowerInvariant() switch
             {
-                case "loved":
-                case "love":
-                    tempNum = 1;
-                    break;
-                case "liked":
-                case "like":
-                    tempNum = 3;
-                    break;
-                case "disliked":
-                case "dislike":
-                    tempNum = 5;
-                    break;
-                case "hated":
-                case "hate":
-                    tempNum = 7;
-                    break;
-            }
-            return tempNum;
+                "loved" or "love" => 1,
+                "liked" or "like" => 3,
+                "disliked" or "dislike" => 5,
+                "hated" or "hate" => 7,
+                _ => 9 // Default case
+            };
         }
 
         public static string GetIDGenerator(string internalNPC, string giftTaste, string[] excludeIdList, int randomSeed)
@@ -161,7 +135,7 @@ namespace PoohCore
             // giftTaste is loved, liked, ... hated
             // internalNPC is the internal NPC name that it try to get gift taste
             NPC npc = Game1.getCharacterFromName(internalNPC);
-            if (npc != null)
+            if (npc is not null)
             {
                 CharacterData npcData = npc.GetData();
                 Dictionary<string, string> npcGiftTastes = DataLoader.NpcGiftTastes(Game1.content);
@@ -211,7 +185,7 @@ namespace PoohCore
             // giftTaste is loved, liked, ... hated
             // internalNPC is the internal NPC name that it try to get gift taste
             NPC npc = Game1.getCharacterFromName(internalNPC);
-            if (npc != null)
+            if (npc is not null)
             {
                 string getIDStraightFromGiftTaste = GetIDGenerator(internalNPC, giftTaste, excludeIdList, randomSeed);
                 //string query = "RANDOM_ITEMS (O)" + " " + GetIDGenerator + " " + GetIDGenerator;
@@ -249,13 +223,13 @@ namespace PoohCore
                     string relativeName = "";
                     string relativeTitle = "";
                     string relativeDisplayName = "";
-                    if (npc != null)
+                    if (npc is not null)
                     {
                         CharacterData npcData = npc.GetData();
-                        while (npcData?.FriendsAndFamily != null && Utility.TryGetRandom(npcData.FriendsAndFamily, out relativeName, out relativeTitle))
+                        while (npcData?.FriendsAndFamily is not null && Utility.TryGetRandom(npcData.FriendsAndFamily, out relativeName, out relativeTitle))
                         {
                             NPC relativenpc = Game1.getCharacterFromName(relativeName);
-                            if (relativenpc != null)
+                            if (relativenpc is not null)
                             {
                                 relativeDisplayName = relativenpc.displayName;
                                 break;

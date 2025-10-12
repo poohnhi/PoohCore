@@ -1,7 +1,7 @@
 {
   "Name": "PoohCore",
   "Author": "Pooh",
-  "Version": "1.0.0",
+  "Version": "1.0.1",
   "Description": "PoohCore - a framework.",
   "UniqueID": "poohnhi.PoohCore",
   "EntryDll": "PoohCore.dll",

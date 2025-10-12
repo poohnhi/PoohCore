@@ -1,78 +1,67 @@
 ﻿using System;
-using System.IO;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Xml.Linq;
-using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
-using StardewValley.BellsAndWhistles;
-using StardewValley.Buildings;
-using StardewValley.Characters;
-using StardewValley.GameData.Movies;
-using StardewValley.Locations;
-using StardewValley.Menus;
-using StardewValley.Minigames;
-using StardewValley.Monsters;
-using StardewValley.Network;
-using StardewValley.Objects;
-using StardewValley.Projectiles;
 using StardewValley.TerrainFeatures;
-using StardewValley.Tools;
-using StardewValley.Util;
-using xTile;
-using xTile.Dimensions;
 using System.Collections.Generic;
-using Netcode;
-using Microsoft.Xna.Framework.Graphics;
 using HarmonyLib;
-using System.Security.Cryptography.X509Certificates;
 using ContentPatcher;
-using System.Linq;
-using Microsoft.Xna.Framework.Input;
 using StardewValley.Delegates;
-using StardewValley.TokenizableStrings;
-using static System.Net.Mime.MediaTypeNames;
-using StardewValley.Extensions;
 using StardewValley.GameData.Characters;
 using StardewValley.GameData.Crops;
-using StardewValley.GameData.GiantCrops;
-using StardewValley.GameData.Objects;
 using StardewValley.GameData.FruitTrees;
-using StardewValley.GameData.Shops;
 
 namespace PoohCore
 {
     public partial class ModEntry : Mod
     {
-        public static HashSet<string> ListOfModifiedNPC = new HashSet<string> { };
-        static List<string> ListOfMailFlag = new List<string> { };
-        static string[] universalLoves = ArgUtility.SplitBySpace(Game1.NPCGiftTastes["Universal_Love"]);
-        static string[] universalHates = ArgUtility.SplitBySpace(Game1.NPCGiftTastes["Universal_Hate"]);
-        static string[] universalLikes = ArgUtility.SplitBySpace(Game1.NPCGiftTastes["Universal_Like"]);
-        static string[] universalDislikes = ArgUtility.SplitBySpace(Game1.NPCGiftTastes["Universal_Dislike"]);
-        static string[] universalNeutrals = ArgUtility.SplitBySpace(Game1.NPCGiftTastes["Universal_Neutral"]);
+        public static HashSet<string> ListOfModifiedNPC = [];
+        internal static List<string> ListOfMailFlag = [];
+        static string[] universalLoves;
+        static string[] universalHates;
+        static string[] universalLikes;
+        static string[] universalDislikes;
+        static string[] universalNeutrals;
         public override void Entry(IModHelper helper)
         {
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.GameLoop.DayEnding += this.OnDayEnding;
             var harmony = new Harmony(this.ModManifest.UniqueID);
-            harmony.Patch(
-                original: AccessTools.Method(typeof(StardewValley.NPC), "behaviorOnFarmerLocationEntry"),
-                postfix: new HarmonyMethod(typeof(Patches), nameof(Patches.behaviorOnFarmerLocationEntry_Postfix))
-            );
-            harmony.Patch(
-                original: AccessTools.Method(typeof(StardewValley.Event), "addActor"),
+
+            try
+            {
+                harmony.Patch(
+                    original: AccessTools.Method(typeof(NPC), "behaviorOnFarmerLocationEntry"),
+                    postfix: new HarmonyMethod(typeof(Patches), nameof(Patches.behaviorOnFarmerLocationEntry_Postfix))
+                );
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log(ex.ToString(), LogLevel.Error);
+            }
+            try
+            {
+                harmony.Patch(
+                original: AccessTools.Method(typeof(Event), "addActor"),
                 postfix: new HarmonyMethod(typeof(Patches), nameof(Patches.addActor_Postfix))
-            );
-            harmony.Patch(
-                original: AccessTools.Method(typeof(StardewValley.NPC), "resetForNewDay"),
+                );
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log(ex.ToString(), LogLevel.Error);
+            }
+            try
+            {
+                harmony.Patch(
+                original: AccessTools.Method(typeof(NPC), "resetForNewDay"),
                 prefix: new HarmonyMethod(typeof(Patches), nameof(Patches.resetForNewDay_Prefix))
             );
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log(ex.ToString(), LogLevel.Error);
+            }
 
         }
         public void OnGameLaunched(object sender, GameLaunchedEventArgs e)
@@ -97,14 +86,14 @@ namespace PoohCore
                             int? totalPrice = 0;
                             FruitTreeData fruitTreeData;
                             FruitTree.TryGetData(obj.ItemId, out fruitTreeData);
-                            if (fruitTreeData?.Fruit != null)
+                            if (fruitTreeData?.Fruit is not null)
                             {
                                 foreach (FruitTreeFruitData entry in fruitTreeData.Fruit)
                                 {
                                     Item cropItem = ItemRegistry.Create(entry.ItemId);
-                                    if (cropItem != null)
+                                    if (cropItem is not null)
                                     {
-                                        totalPrice += cropItem?.sellToStorePrice(); ;
+                                        totalPrice += cropItem?.sellToStorePrice();
                                     }
                                 }
                                 int? price = totalPrice*15;
@@ -125,7 +114,7 @@ namespace PoohCore
                             Crop.TryGetData(item.ItemId, out cropData);
 
                             // Get price from that crop and compare it to max and min price
-                            if (cropData != null)
+                            if (cropData is not null)
                             {
                                 Item cropItem = ItemRegistry.Create(cropData.HarvestItemId);
                                 int? price = cropItem?.sellToStorePrice();
@@ -163,22 +152,22 @@ namespace PoohCore
             {
                 try
                 {
-                    if (thisChar != null)
+                    if (thisChar is not null)
                     {
                         CharacterData data = thisChar.GetData();
-                        if (data != null)
+                        if (data is not null)
                         {
                             try
                             {
                                 var test = data.CustomFields.TryGetValue("poohnhi.PoohCore/WideCharacter", out string WideCharacterValue);
-                                if (WideCharacterValue != null && WideCharacterValue != "false")
+                                if (WideCharacterValue is not null && WideCharacterValue != "false")
                                 ListOfModifiedNPC.Add(thisChar.Name);
                             }
                             catch { }
                             try
                             {
                                 var test = data.CustomFields.TryGetValue("poohnhi.PoohCore/HighCharacter", out string HighCharacterValue);
-                                if (HighCharacterValue != null && HighCharacterValue != "false")
+                                if (HighCharacterValue is not null && HighCharacterValue != "false")
                                 ListOfModifiedNPC.Add(thisChar.Name);
                             }
                             catch { }
@@ -203,7 +192,7 @@ namespace PoohCore
                     Game1.player.mailReceived.Add(nextFlag);
                 }
             }
-            ListOfMailFlag = new List<string> { };
+            ListOfMailFlag = [];
         }
     }
 }

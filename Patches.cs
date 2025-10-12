@@ -1,29 +1,23 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using StardewModdingAPI;
+﻿using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Characters;
 using System;
-using Microsoft.Xna.Framework;
-using Force.DeepCloner;
-using System.Collections.Generic;
-using System.Xml.Linq;
-using xTile.Dimensions;
 
 namespace PoohCore
 {
     internal class Patches
     {
         private static IMonitor Monitor;
-        internal static void behaviorOnFarmerLocationEntry_Postfix(StardewValley.NPC __instance, GameLocation location, Farmer who)
+        internal static void behaviorOnFarmerLocationEntry_Postfix(NPC __instance, GameLocation location, Farmer who)
         {
             try
             {
                 CharacterData data = __instance.GetData();
-                if (data != null && data.CustomFields.TryGetValue("poohnhi.PoohCore/HighCharacter", out string HighCharacterValue))
+                if (data is not null && data.CustomFields.TryGetValue("poohnhi.PoohCore/HighCharacter", out string HighCharacterValue))
                 {
-                    if (HighCharacterValue != null && HighCharacterValue != "false")
+                    if (HighCharacterValue is not null && HighCharacterValue != "false")
                     {
-                        if (__instance.Sprite != null && __instance.Sprite.CurrentAnimation == null && __instance.Sprite.SourceRect.Height > 32)
+                        if (__instance.Sprite is not null && __instance.Sprite.CurrentAnimation == null && __instance.Sprite.SourceRect.Height > 32)
                         {
                             __instance.Sprite.SpriteWidth = __instance.Sprite.SourceRect.Width;
                             __instance.Sprite.SpriteHeight = __instance.Sprite.SourceRect.Height;
@@ -34,10 +28,10 @@ namespace PoohCore
             }
             catch (Exception ex)
             {
-                //Monitor.Log($"Failed in {nameof(behaviorOnFarmerLocationEntry_Postfix)}:\n{ex}", LogLevel.Error);
+                //Monitor.Log($"Failed in PoohCore {nameof(behaviorOnFarmerLocationEntry_Postfix)}:\n{ex}", LogLevel.Error);
             }
         }
-        internal static void addActor_Postfix(StardewValley.Event __instance, string name, int x, int y, int facingDirection, GameLocation location)
+        internal static void addActor_Postfix(Event __instance, string name, int x, int y, int facingDirection, GameLocation location)
         {
             try
             {
@@ -45,7 +39,7 @@ namespace PoohCore
                 if (ModEntry.ListOfModifiedNPC.Contains(name))
                 {
                     NPC actorByName = __instance.getActorByName(name, out isOptionalNpc);
-                    if (actorByName != null)
+                    if (actorByName is not null)
                     {
                         __instance.actors.Remove(actorByName);
                         NPC myNPC = Game1.getCharacterFromName(name);
@@ -71,22 +65,22 @@ namespace PoohCore
             }
             catch (Exception ex)
             {
-                //Monitor.Log($"Failed in {nameof(behaviorOnFarmerLocationEntry_Postfix)}:\n{ex}", LogLevel.Trace);
+                //Monitor.Log($"Failed in PoohCore {nameof(behaviorOnFarmerLocationEntry_Postfix)}:\n{ex}", LogLevel.Trace);
             }
         }
-        internal static void resetForNewDay_Prefix(StardewValley.NPC __instance, int dayOfMonth)
+        internal static void resetForNewDay_Prefix(NPC __instance, int dayOfMonth)
         {
             try
             {
-                if (__instance != null)
+                if (__instance is not null)
                 {
                     CharacterData data = __instance.GetData();
-                    if (data != null)
+                    if (data is not null)
                     {
                         try
                         {
                             var test = data.CustomFields.TryGetValue("poohnhi.PoohCore/WideCharacter", out string WideCharacterValue);
-                            if (WideCharacterValue != null && WideCharacterValue != "false")
+                            if (WideCharacterValue is not null && WideCharacterValue != "false")
                             {
                                 __instance.forceOneTileWide.Set(true);
                             }
@@ -101,7 +95,7 @@ namespace PoohCore
             }
             catch (Exception ex)
             {
-                //Monitor.Log($"Failed in {nameof(resetForNewDay_Prefix)}:\n{ex}", LogLevel.Error);
+                //Monitor.Log($"Failed in PoohCore {nameof(resetForNewDay_Prefix)}:\n{ex}", LogLevel.Trace);
             }
         }
     }
